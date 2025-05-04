@@ -123,7 +123,7 @@ CREATE TABLE DimDate (
 ```sql
 INSERT INTO DimDate ([Date], Day, MonthName, Year)
 SELECT DISTINCT [Date], [Day], [Month], [Year]
-FROM bike_sales_with_id;
+FROM bike_sales;
 ```
 ### DimCustomer
 
@@ -141,7 +141,7 @@ CREATE TABLE DimCustomer (
 ```sql
 INSERT INTO DimCustomer (Customer_Age, Age_Group, Customer_Gender, Country, State)
 SELECT DISTINCT Customer_Age, Age_Group, Customer_Gender, Country, State
-FROM bike_sales_with_id;
+FROM bike_sales;
 ```
 
 ### DimProduct
@@ -163,7 +163,7 @@ CREATE TABLE DimProduct (
 ```sql
 INSERT INTO DimProduct (Product, Sub_Category, Product_Category, Manufacturer, Color, Size, Material, Warranty)
 SELECT DISTINCT Product, Sub_Category, Product_Category, Manufacturer, Color, Size, Material, Warranty
-FROM bike_sales_with_id;
+FROM bike_sales;
 ```
 
 ### FactSales
@@ -203,10 +203,44 @@ SELECT
     s.Order_Quantity, s.Unit_Cost, s.Unit_Price,
     s.Profit, s.Cost, s.Revenue, s.Discount,
     s.Eco_Friendly, s.Shipping_Cost, s.Delivery_Time, s.Rating
-FROM bike_sales_with_id s
+FROM bike_sales s
 JOIN DimDate d ON s.[Date] = d.[Date] AND s.[Day] = d.Day AND s.[Month] = d.MonthName AND s.[Year] = d.Year
 JOIN DimCustomer c ON s.Customer_Age = c.Customer_Age AND s.Age_Group = c.Age_Group AND s.Customer_Gender = c.Customer_Gender AND s.Country = c.Country AND s.State = c.State
 JOIN DimProduct p ON s.Product = p.Product AND s.Sub_Category = p.Sub_Category AND s.Product_Category = p.Product_Category AND s.Manufacturer = p.Manufacturer AND s.Color = p.Color AND s.Size = p.Size AND s.Material = p.Material AND s.Warranty = p.Warranty;
 ```
+## 🔧 Úpravy datových typů (`ALTER TABLE`)
 
+Před rozdělením na dimenze bylo potřeba převést textové hodnoty na vhodné datové typy:
 
+### Konverze sloupců pomocí `ALTER TABLE ... ALTER COLUMN`:
+
+```sql
+-- Příklad: Převod textového sloupce na datum
+ALTER TABLE bike_sales ALTER COLUMN [Date] DATE;
+
+-- Převod číselných hodnot
+ALTER TABLE bike_sales ALTER COLUMN [Customer_Age] INT;
+ALTER TABLE bike_sales ALTER COLUMN [Order_Quantity] INT;
+ALTER TABLE bike_sales ALTER COLUMN [Unit_Cost] FLOAT;
+ALTER TABLE bike_sales ALTER COLUMN [Revenue] FLOAT;
+
+-- Převod ekologického příznaku na BIT
+-- Nejprve převod 'TRUE'/'FALSE' na '1'/'0':
+UPDATE bike_sales
+SET Eco_Friendly = 
+    CASE 
+        WHEN UPPER(LTRIM(RTRIM(Eco_Friendly))) = 'TRUE' THEN '1'
+        WHEN UPPER(LTRIM(RTRIM(Eco_Friendly))) = 'FALSE' THEN '0'
+        ELSE Eco_Friendly
+    END;
+
+-- Poté změna typu
+ALTER TABLE bike_sales ALTER COLUMN Eco_Friendly BIT;
+
+```
+--Nahrazení NaN hodnot NULL
+```sql
+UPDATE bike_sales
+SET Insurance = NULL
+WHERE LTRIM(RTRIM(LOWER(Insurance))) IN ('nan', 'na', 'n/a', '');
+```
