@@ -1,6 +1,6 @@
 # SQL Dotazy s komentářem
 
-Tento dokument obsahuje všechny důležité SQL dotazy použití při zápočtovém projektu, doplněné stručným komentářem.
+Tento dokument obsahuje všechny důležité SQL dotazy použití při zápočtovém projektu
 
 ---
 
@@ -48,7 +48,7 @@ FROM FactSales
 GROUP BY Eco_Friendly;
 ```
 
-📝 *Porovnává počet a součet tržeb objednávek mezi ekologickými (`Eco_Friendly = 1`) a neekologickými (`Eco_Friendly = 0`) produkty.*
+📝 *Porovnává počet a součet tržeb objednávek mezi ekologickými a neekologickými produkty.*
 
 ---
 
